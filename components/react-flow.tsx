@@ -16,12 +16,13 @@ import {
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
 import "@xyflow/react/dist/style.css";
 
-// Shadcn UI Components
+// Imports Shadcn UI
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Select,
     SelectContent,
@@ -39,10 +40,25 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 // Lucide Icons
-import { Pencil, Trash2, Plus, Key, Link as LinkIcon, AlertCircle, X } from "lucide-react";
+import {
+    Pencil,
+    Trash2,
+    Plus,
+    Key,
+    Link as LinkIcon,
+    AlertCircle,
+    X,
+    Code,
+    Layers,
+    Database,
+    FileText,
+    Copy,
+    Check,
+} from "lucide-react";
 
-// --- Strict TypeScript Definitions ---
-export type DataType = "uuid" | "varchar" | "int" | "timestamp";
+// --- Types Strictement Définis ---
+export type ViewMode = "MCD" | "MLD" | "MPD";
+export type DataType = "UUID" | "VARCHAR(255)" | "INTEGER" | "TIMESTAMP" | "BOOLEAN" | "TEXT";
 export type CardinalityType = "1:1" | "1:N" | "N:N";
 
 export type Column = {
@@ -51,11 +67,13 @@ export type Column = {
     type: DataType;
     isPk?: boolean;
     isFk?: boolean;
+    nullable?: boolean;
 };
 
 export type TableNodeData = {
     label: string;
     columns: Column[];
+    viewMode: ViewMode;
     linkedColumnIds?: Set<string>;
     onEdit?: (id: string) => void;
     onDelete?: (id: string) => void;
@@ -70,15 +88,17 @@ export type CustomEdgeData = Record<string, unknown> & {
 export type TableNode = Node<TableNodeData, "databaseTable">;
 export type RelationEdge = Edge<CustomEdgeData>;
 
-// --- Custom Node : Database Table ---
+// --- Composant Nœud Adaptatif (MCD / MLD / MPD) ---
 function DatabaseTableNode({ id, data }: NodeProps<TableNode>) {
+    const { viewMode, label, columns, linkedColumnIds } = data;
+
     return (
-        <Card className="w-[280px] bg-card border-border text-card-foreground shadow-xl overflow-hidden py-0">
+        <Card className="w-[280px] bg-card border-border text-card-foreground shadow-xl overflow-hidden py-0 transition-all">
             <CardHeader className="bg-muted/50 px-3 py-2 border-b border-border flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-2">
-                    <CardTitle className="text-xs font-bold tracking-wide">{data.label}</CardTitle>
+                    <CardTitle className="text-xs font-bold tracking-wide">{label}</CardTitle>
                     <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-background/60 border-border text-muted-foreground font-mono">
-                        TABLE
+                        {viewMode === "MCD" ? "ENTITÉ" : viewMode === "MLD" ? "TABLE" : "MPD"}
                     </Badge>
                 </div>
                 <div className="flex items-center gap-1">
@@ -102,8 +122,9 @@ function DatabaseTableNode({ id, data }: NodeProps<TableNode>) {
             </CardHeader>
 
             <CardContent className="p-2 space-y-1.5 font-mono text-xs">
-                {data.columns?.map((col) => {
-                    const isLinked = data.linkedColumnIds?.has(col.id);
+                {columns?.map((col) => {
+                    const isLinked = linkedColumnIds?.has(col.id);
+
                     return (
                         <div
                             key={col.id}
@@ -120,29 +141,39 @@ function DatabaseTableNode({ id, data }: NodeProps<TableNode>) {
                             />
 
                             <div className="flex items-center gap-1.5 overflow-hidden">
-                                {col.isPk && (
+                                {/* Badges MLD & MPD */}
+                                {viewMode !== "MCD" && col.isPk && (
                                     <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/30 text-[9px] px-1 py-0 h-4">
                                         <Key className="h-2.5 w-2.5 mr-0.5" /> PK
                                     </Badge>
                                 )}
-                                {col.isFk && (
+                                {viewMode !== "MCD" && col.isFk && (
                                     <Badge className="bg-sky-500/20 text-sky-600 dark:text-sky-300 border-sky-500/30 text-[9px] px-1 py-0 h-4">
                                         FK
                                     </Badge>
                                 )}
-                                <span className={`truncate ${col.isPk ? "font-semibold text-amber-600 dark:text-amber-200" : "text-foreground"}`}>
+
+                                {/* Nom du champ */}
+                                <span className={`truncate ${col.isPk && viewMode !== "MCD" ? "font-semibold text-amber-600 dark:text-amber-200" : "text-foreground"}`}>
                                     {col.name}
                                 </span>
-                                {isLinked && (
+
+                                {isLinked && viewMode !== "MCD" && (
                                     <Badge variant="outline" className="text-[8px] bg-primary/10 text-primary border-primary/20 px-1 py-0 h-3.5">
                                         <LinkIcon className="h-2 w-2 mr-0.5" /> LINK
                                     </Badge>
                                 )}
                             </div>
 
-                            <span className="text-[10px] text-muted-foreground uppercase ml-2">{col.type}</span>
+                            {/* Type (Masqué en MCD, basique en MLD, détaillé en MPD) */}
+                            {viewMode === "MPD" && (
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-muted-foreground uppercase">{col.type}</span>
+                                    {!col.nullable && <span className="text-[8px] text-red-500 font-bold">NN</span>}
+                                </div>
+                            )}
 
-                            {/* Source Handle (PK only) */}
+                            {/* Source Handle (PK uniquement) */}
                             <Handle
                                 type="source"
                                 position={Position.Right}
@@ -161,9 +192,12 @@ function DatabaseTableNode({ id, data }: NodeProps<TableNode>) {
     );
 }
 
-// --- Main Flow Canvas Component ---
+// --- Composant Principal ---
 export function FlowDiagram() {
     const nodeTypes: NodeTypes = useMemo(() => ({ databaseTable: DatabaseTableNode }), []);
+
+    // Mode de vue actif : MCD, MLD ou MPD
+    const [viewMode, setViewMode] = useState<ViewMode>("MPD");
 
     const {
         nodes,
@@ -180,9 +214,10 @@ export function FlowDiagram() {
                     type: "databaseTable",
                     data: {
                         label: "users",
+                        viewMode: "MPD",
                         columns: [
-                            { id: "u-1", name: "id", type: "uuid", isPk: true },
-                            { id: "u-2", name: "email", type: "varchar" },
+                            { id: "u-1", name: "id", type: "UUID", isPk: true, nullable: false },
+                            { id: "u-2", name: "email", type: "VARCHAR(255)", nullable: false },
                         ],
                     },
                     position: { x: 50, y: 100 },
@@ -192,10 +227,11 @@ export function FlowDiagram() {
                     type: "databaseTable",
                     data: {
                         label: "courses",
+                        viewMode: "MPD",
                         columns: [
-                            { id: "c-1", name: "id", type: "uuid", isPk: true },
-                            { id: "c-2", name: "title", type: "varchar" },
-                            { id: "c-3", name: "instructor_id", type: "uuid", isFk: true },
+                            { id: "c-1", name: "id", type: "UUID", isPk: true, nullable: false },
+                            { id: "c-2", name: "title", type: "VARCHAR(255)", nullable: false },
+                            { id: "c-3", name: "instructor_id", type: "UUID", isFk: true, nullable: false },
                         ],
                     },
                     position: { x: 450, y: 100 },
@@ -218,17 +254,19 @@ export function FlowDiagram() {
         },
     });
 
-    // Modals & Banner States
+    // Modales & Bannières
     const [isTableModalOpen, setIsTableModalOpen] = useState<boolean>(false);
     const [isEdgeModalOpen, setIsEdgeModalOpen] = useState<boolean>(false);
+    const [isSqlModalOpen, setIsSqlModalOpen] = useState<boolean>(false);
+    const [copied, setCopied] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    // Table Form State
+    // Formulaire Table
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [tableName, setTableName] = useState<string>("");
     const [columns, setColumns] = useState<Column[]>([]);
 
-    // Edge Form State
+    // Formulaire Relation
     const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
     const [sourceTableId, setSourceTableId] = useState<string>("");
     const [targetTableId, setTargetTableId] = useState<string>("");
@@ -236,7 +274,7 @@ export function FlowDiagram() {
     const [targetFieldId, setTargetFieldId] = useState<string>("");
     const [cardinality, setCardinality] = useState<CardinalityType>("1:N");
 
-    // Track linked columns across all edges
+    // Calcul des colonnes reliées
     const linkedColumnIds = useMemo<Set<string>>(() => {
         const set = new Set<string>();
         edges.forEach((edge) => {
@@ -246,7 +284,41 @@ export function FlowDiagram() {
         return set;
     }, [edges]);
 
-    // Handle Drag & Drop connections (Strict PK check)
+    // Génération du Script SQL DDL (pour le MPD)
+    const sqlScript = useMemo(() => {
+        let script = "-- Generated DDL Script (PostgreSQL)\n\n";
+
+        nodes.forEach((node) => {
+            script += `CREATE TABLE ${node.data.label} (\n`;
+            const columnLines = node.data.columns.map((col) => {
+                let line = `  ${col.name} ${col.type}`;
+                if (!col.nullable) line += " NOT NULL";
+                if (col.isPk) line += " PRIMARY KEY";
+                return line;
+            });
+
+            script += columnLines.join(",\n");
+            script += "\n);\n\n";
+        });
+
+        edges.forEach((edge) => {
+            const srcNode = nodes.find((n) => n.id === edge.source);
+            const tgtNode = nodes.find((n) => n.id === edge.target);
+            const srcCol = srcNode?.data.columns.find((c) => c.id === edge.data?.sourceField);
+            const tgtCol = tgtNode?.data.columns.find((c) => c.id === edge.data?.targetField);
+
+            if (srcNode && tgtNode && srcCol && tgtCol) {
+                script += `ALTER TABLE ${tgtNode.data.label}\n`;
+                script += `  ADD CONSTRAINT fk_${tgtNode.data.label}_${tgtCol.name}\n`;
+                script += `  FOREIGN KEY (${tgtCol.name})\n`;
+                script += `  REFERENCES ${srcNode.data.label}(${srcCol.name});\n\n`;
+            }
+        });
+
+        return script;
+    }, [nodes, edges]);
+
+    // Validation Drag & Drop (Connexion)
     const handleCanvasConnect = useCallback((connection: Connection) => {
         if (!connection.source || !connection.target) return;
 
@@ -274,11 +346,11 @@ export function FlowDiagram() {
         setIsEdgeModalOpen(true);
     }, [nodes]);
 
-    // Table Handlers
+    // Handlers Table
     const handleOpenCreateModal = () => {
         setEditingNodeId(null);
         setTableName("");
-        setColumns([{ id: `col-${Date.now()}`, name: "id", type: "uuid", isPk: true }]);
+        setColumns([{ id: `col-${Date.now()}`, name: "id", type: "UUID", isPk: true, nullable: false }]);
         setIsTableModalOpen(true);
     };
 
@@ -306,7 +378,6 @@ export function FlowDiagram() {
             const currentColumnIds = new Set(columns.map((c) => c.id));
             const pkColumnIds = new Set(columns.filter((c) => c.isPk).map((c) => c.id));
 
-            // Remove broken edges if field is deleted or PK status is revoked
             const brokenEdges = edges.filter((e) => {
                 if (!e.data) return false;
                 if (e.source === editingNodeId) {
@@ -339,14 +410,14 @@ export function FlowDiagram() {
                 id: newId,
                 type: "databaseTable",
                 position: { x: 100 + Math.random() * 100, y: 100 + Math.random() * 100 },
-                data: { label: tableName, columns },
+                data: { label: tableName, columns, viewMode },
             };
             onNodesChange([{ type: "add", item: newNode }]);
         }
         setIsTableModalOpen(false);
     };
 
-    // Edge Handlers
+    // Handlers Relations
     const handleOpenEditEdgeModal = (edge: RelationEdge) => {
         setEditingEdgeId(edge.id);
         setSourceTableId(edge.source);
@@ -391,19 +462,27 @@ export function FlowDiagram() {
         setIsEdgeModalOpen(false);
     };
 
+    const handleCopySql = () => {
+        navigator.clipboard.writeText(sqlScript);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    // Injection dynamique du mode de vue actif
     const enrichedNodes = useMemo<TableNode[]>(() => {
         return nodes.map((node) => ({
             ...node,
             data: {
                 ...node.data,
+                viewMode,
                 linkedColumnIds,
                 onEdit: handleOpenEditModal,
                 onDelete: handleDeleteNode,
             },
         }));
-    }, [nodes, linkedColumnIds, handleOpenEditModal, handleDeleteNode]);
+    }, [nodes, viewMode, linkedColumnIds, handleOpenEditModal, handleDeleteNode]);
 
-    // Computations for Modals
+    // Métadonnées pour les modales
     const sourceTableNode = useMemo(() => nodes.find((n) => n.id === sourceTableId), [nodes, sourceTableId]);
     const sourceColumnName = useMemo(() => {
         return sourceTableNode?.data.columns.find((c) => c.id === sourceFieldId)?.name || sourceFieldId;
@@ -415,14 +494,34 @@ export function FlowDiagram() {
 
     return (
         <div className="w-full h-screen relative bg-background text-foreground">
-            {/* Action Toolbar */}
-            <div className="absolute top-4 left-4 z-10">
+            {/* Toolbar Supérieure */}
+            <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
                 <Button onClick={handleOpenCreateModal} className="gap-2 shadow-lg">
                     <Plus className="h-4 w-4" /> Nouvelle Table
                 </Button>
+
+                {/* Sélecteur de vue : MCD / MLD / MPD */}
+                <Tabs value={viewMode} onValueChange={(val) => setViewMode(val as ViewMode)} className="shadow-lg">
+                    <TabsList className="bg-card border border-border">
+                        <TabsTrigger value="MCD" className="gap-1.5 text-xs">
+                            <Layers className="h-3.5 w-3.5" /> MCD
+                        </TabsTrigger>
+                        <TabsTrigger value="MLD" className="gap-1.5 text-xs">
+                            <FileText className="h-3.5 w-3.5" /> MLD
+                        </TabsTrigger>
+                        <TabsTrigger value="MPD" className="gap-1.5 text-xs">
+                            <Database className="h-3.5 w-3.5" /> MPD
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+
+                {/* Bouton pour exporter le SQL */}
+                <Button variant="outline" onClick={() => setIsSqlModalOpen(true)} className="gap-2 shadow-lg bg-card">
+                    <Code className="h-4 w-4 text-primary" /> Exporter SQL
+                </Button>
             </div>
 
-            {/* Error Notification Banner */}
+            {/* Notification d'erreur */}
             {errorMessage && (
                 <div className="absolute top-4 right-4 z-50 bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg shadow-2xl text-xs flex items-center gap-3 backdrop-blur-md">
                     <AlertCircle className="h-4 w-4 shrink-0" />
@@ -433,7 +532,7 @@ export function FlowDiagram() {
                 </div>
             )}
 
-            {/* Canvas Diagram */}
+            {/* Flow Canvas */}
             <ReactFlow<TableNode, RelationEdge>
                 nodes={enrichedNodes}
                 edges={edges}
@@ -446,13 +545,12 @@ export function FlowDiagram() {
                 fitView
                 fitViewOptions={{ padding: 0.2 }}
             >
-                {/* Dynamically matches theme variables */}
                 <Background color="hsl(var(--muted-foreground) / 0.3)" gap={16} />
                 <Controls />
                 <Cursors />
             </ReactFlow>
 
-            {/* MODAL: Create / Edit Table */}
+            {/* MODALE : Création / Édition Table */}
             <Dialog open={isTableModalOpen} onOpenChange={setIsTableModalOpen}>
                 <DialogContent className="bg-card border-border text-card-foreground max-w-lg">
                     <DialogHeader>
@@ -476,7 +574,7 @@ export function FlowDiagram() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setColumns([...columns, { id: `col-${Date.now()}`, name: "new_col", type: "varchar" }])}
+                                    onClick={() => setColumns([...columns, { id: `col-${Date.now()}`, name: "new_col", type: "VARCHAR(255)", nullable: true }])}
                                     className="text-xs text-primary hover:text-primary/80 h-7 px-2"
                                 >
                                     <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
@@ -495,14 +593,16 @@ export function FlowDiagram() {
                                             value={col.type}
                                             onValueChange={(val: DataType) => setColumns(columns.map((c) => (c.id === col.id ? { ...c, type: val } : c)))}
                                         >
-                                            <SelectTrigger className="w-[110px] h-8 bg-background border-input text-xs">
+                                            <SelectTrigger className="w-[130px] h-8 bg-background border-input text-xs">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent className="bg-popover border-border">
-                                                <SelectItem value="uuid">uuid</SelectItem>
-                                                <SelectItem value="varchar">varchar</SelectItem>
-                                                <SelectItem value="int">int</SelectItem>
-                                                <SelectItem value="timestamp">timestamp</SelectItem>
+                                                <SelectItem value="UUID">UUID</SelectItem>
+                                                <SelectItem value="VARCHAR(255)">VARCHAR(255)</SelectItem>
+                                                <SelectItem value="INTEGER">INTEGER</SelectItem>
+                                                <SelectItem value="TIMESTAMP">TIMESTAMP</SelectItem>
+                                                <SelectItem value="BOOLEAN">BOOLEAN</SelectItem>
+                                                <SelectItem value="TEXT">TEXT</SelectItem>
                                             </SelectContent>
                                         </Select>
 
@@ -559,7 +659,7 @@ export function FlowDiagram() {
                 </DialogContent>
             </Dialog>
 
-            {/* MODAL: Configure Edge / Relationship */}
+            {/* MODALE : Édition Relation */}
             <Dialog open={isEdgeModalOpen} onOpenChange={setIsEdgeModalOpen}>
                 <DialogContent className="bg-card border-border text-card-foreground max-w-md">
                     <DialogHeader>
@@ -567,7 +667,6 @@ export function FlowDiagram() {
                     </DialogHeader>
 
                     <div className="space-y-4 py-2">
-                        {/* Fixed Source Primary Key Badge */}
                         <div className="bg-muted/50 p-3 rounded-lg border border-border space-y-1 font-mono text-xs">
                             <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground">Source (Clé Primaire) :</span>
@@ -580,7 +679,6 @@ export function FlowDiagram() {
                             </div>
                         </div>
 
-                        {/* Target Column Picker */}
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">
                                 Champ cible dans <span className="text-primary font-semibold">{targetTableId}</span> :
@@ -599,7 +697,6 @@ export function FlowDiagram() {
                             </Select>
                         </div>
 
-                        {/* Cardinality Selector */}
                         <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Cardinalité</Label>
                             <Select value={cardinality} onValueChange={(val: CardinalityType) => setCardinality(val)}>
@@ -634,6 +731,35 @@ export function FlowDiagram() {
                                 Enregistrer
                             </Button>
                         </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* MODALE : Code SQL Généré (MPD) */}
+            <Dialog open={isSqlModalOpen} onOpenChange={setIsSqlModalOpen}>
+                <DialogContent className="bg-card border-border text-card-foreground max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Code className="h-5 w-5 text-primary" /> Code SQL Généré (DDL)
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="relative">
+                        <pre className="bg-muted p-4 rounded-lg font-mono text-xs overflow-x-auto max-h-96 border border-border text-foreground">
+                            {sqlScript}
+                        </pre>
+                        <Button
+                            size="icon"
+                            variant="secondary"
+                            className="absolute top-3 right-3 h-8 w-8"
+                            onClick={handleCopySql}
+                        >
+                            {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                    </div>
+
+                    <DialogFooter>
+                        <Button onClick={() => setIsSqlModalOpen(false)}>Fermer</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
