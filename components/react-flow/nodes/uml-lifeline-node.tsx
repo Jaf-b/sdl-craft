@@ -2,13 +2,14 @@ import { NodeProps, Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { User, Pencil, Trash2 } from "lucide-react";
 import { UmlLifelineNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function UmlLifelineNodeComponent({ id, data, selected }: NodeProps<UmlLifelineNode>) {
-    const { label, instanceName, className, isActor } = data;
+    const { label, instanceName, className, isActor, commentCount, unresolvedCommentCount, onOpenComments } = data;
     const headerTitle = instanceName && className ? `${instanceName} : ${className}` : (label || "Objet");
 
     return (
-        <div className="relative flex flex-col items-center select-none">
+        <div className="relative flex flex-col items-center select-none group">
             {/* Handle pour le point de contact supérieur */}
             <Handle type="target" position={Position.Top} id="top" className="!bg-teal-500 !w-2.5 !h-2.5" />
             <Handle type="source" position={Position.Top} id="top-src" className="!bg-teal-500 !w-2.5 !h-2.5" />
@@ -30,7 +31,14 @@ export function UmlLifelineNodeComponent({ id, data, selected }: NodeProps<UmlLi
             )}
 
             {/* Boutons d'action */}
-            <div className="absolute -top-3 right-0 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity z-20">
+            <div className="absolute -top-3 right-0 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-90 group-hover:opacity-100 transition-opacity z-20">
+                <NodeCommentBadge
+                    nodeId={id}
+                    nodeLabel={headerTitle}
+                    commentCount={commentCount}
+                    unresolvedCount={unresolvedCommentCount}
+                    onOpenComments={onOpenComments}
+                />
                 <Button
                     variant="ghost"
                     size="icon"

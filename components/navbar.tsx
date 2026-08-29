@@ -4,6 +4,7 @@ import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { Layers, Sparkles, FolderGit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { InboxNotifications } from "./inbox-notifications";
 
 export function Navbar() {
     const { user } = useUser();
@@ -43,6 +44,9 @@ export function Navbar() {
 
                 {/* Profil & Actions utilisateur */}
                 <div className="flex items-center gap-3">
+                    {/* Cloche de notifications Liveblocks */}
+                    <InboxNotifications />
+
                     {user && (
                         <div className="hidden sm:flex flex-col items-end text-right">
                             <span className="text-xs font-semibold text-foreground leading-none">

@@ -24,7 +24,9 @@ export function DeleteConfirmModal({
                     ? "l'entité"
                     : pendingDeletion.nodeType === "mcdAssociation"
                     ? "l'association"
-                    : "la table";
+                    : pendingDeletion.nodeType === "databaseTable"
+                    ? "la table"
+                    : "l'élément";
 
             return edgeCount === 0
                 ? `Voulez-vous vraiment supprimer ${nodeTypeName} « ${pendingDeletion.name} » ?`
@@ -33,10 +35,12 @@ export function DeleteConfirmModal({
         if (pendingDeletion.kind === "edge") {
             return "Voulez-vous vraiment supprimer cette liaison ?";
         }
-
-        const nodeCount = pendingDeletion.nodes.length;
-        const edgeCount = pendingDeletion.edges.length;
-        return `Voulez-vous vraiment supprimer ${nodeCount > 0 ? `${nodeCount} élément${nodeCount > 1 ? "s" : ""}` : ""}${nodeCount > 0 && edgeCount > 0 ? " et " : ""}${edgeCount > 0 ? `${edgeCount} liaison${edgeCount > 1 ? "s" : ""}` : ""} ?`;
+        if (pendingDeletion.kind === "flow") {
+            const nodeCount = pendingDeletion.nodes.length;
+            const edgeCount = pendingDeletion.edges.length;
+            return `Voulez-vous vraiment supprimer ${nodeCount > 0 ? `${nodeCount} élément${nodeCount > 1 ? "s" : ""}` : ""}${nodeCount > 0 && edgeCount > 0 ? " et " : ""}${edgeCount > 0 ? `${edgeCount} liaison${edgeCount > 1 ? "s" : ""}` : ""} ?`;
+        }
+        return "";
     }, [pendingDeletion]);
 
     return (

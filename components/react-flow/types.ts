@@ -11,6 +11,13 @@ export type UmlDiagramType =
     | "deployment"  // 5. Diagramme de déploiement (DevOps, Cloud, Serveurs, BDD)
     | "state";      // 6. Diagramme d'états-transitions (Cycles de vie d'entités)
 
+// Propriétés collaboratives partagées par tous les nœuds
+export type BaseNodeCollaborativeData = {
+    commentCount?: number;
+    unresolvedCommentCount?: number;
+    onOpenComments?: (nodeId: string, nodeLabel: string) => void;
+};
+
 // --- Types MCD (MERISE) ---
 export type McdAttribute = {
     id: string;
@@ -18,13 +25,13 @@ export type McdAttribute = {
     isIdentifier?: boolean;
     nullable?: boolean;
 };
-export type McdEntityData = {
+export type McdEntityData = BaseNodeCollaborativeData & {
     label: string;
     attributes: McdAttribute[];
     onEdit?: (id: string) => void;
     onDelete?: (id: string) => void;
 };
-export type McdAssociationData = {
+export type McdAssociationData = BaseNodeCollaborativeData & {
     label: string;
     attributes?: McdAttribute[];
     onEdit?: (id: string) => void;
@@ -51,7 +58,7 @@ export type MldColumn = {
     isFk?: boolean;
     nullable?: boolean;
 };
-export type MldTableData = {
+export type MldTableData = BaseNodeCollaborativeData & {
     label: string;
     columns: MldColumn[];
     linkedColumnIds?: Set<string>;
@@ -90,13 +97,13 @@ export type UmlMethod = {
 };
 
 // 1. Diagramme de Cas d'Utilisation
-export type UmlActorData = {
+export type UmlActorData = BaseNodeCollaborativeData & {
     label: string;
     roleDescription?: string;
     onEdit?: (id: string) => void;
     onDelete?: (id: string) => void;
 };
-export type UmlUseCaseData = {
+export type UmlUseCaseData = BaseNodeCollaborativeData & {
     label: string;
     description?: string;
     onEdit?: (id: string) => void;
@@ -106,7 +113,7 @@ export type UmlActorNode = Node<UmlActorData, "umlActor">;
 export type UmlUseCaseNode = Node<UmlUseCaseData, "umlUseCase">;
 
 // 2. Diagramme de Classes
-export type UmlClassData = {
+export type UmlClassData = BaseNodeCollaborativeData & {
     label: string;
     classType: UmlClassType;
     attributes: UmlAttribute[];
@@ -117,7 +124,7 @@ export type UmlClassData = {
 export type UmlClassNode = Node<UmlClassData, "umlClass">;
 
 // 3. Diagramme de Séquence
-export type UmlLifelineData = {
+export type UmlLifelineData = BaseNodeCollaborativeData & {
     label: string;
     instanceName?: string;
     className?: string;
@@ -129,7 +136,7 @@ export type UmlLifelineNode = Node<UmlLifelineData, "umlLifeline">;
 
 // 4. Diagramme d'Activités
 export type UmlActivityKind = "initial" | "final" | "action" | "decision" | "fork" | "join";
-export type UmlActivityData = {
+export type UmlActivityData = BaseNodeCollaborativeData & {
     label: string;
     nodeKind: UmlActivityKind;
     onEdit?: (id: string) => void;
@@ -139,7 +146,7 @@ export type UmlActivityNode = Node<UmlActivityData, "umlActivity">;
 
 // 5. Diagramme de Déploiement
 export type UmlDeploymentKind = "node" | "device" | "artifact" | "executionEnvironment";
-export type UmlDeploymentData = {
+export type UmlDeploymentData = BaseNodeCollaborativeData & {
     label: string;
     kind: UmlDeploymentKind;
     stereotype?: string;
@@ -149,8 +156,8 @@ export type UmlDeploymentData = {
 export type UmlDeploymentNode = Node<UmlDeploymentData, "umlDeployment">;
 
 // 6. Diagramme d'États-Transitions
-export type UmlStateKind = "initial" | "final" | "simple" | "composite" | "choice" | "fork" | "join";
-export type UmlStateData = {
+export type UmlStateKind = "initial" | "final" | "simple" | "composite" | "choice";
+export type UmlStateData = BaseNodeCollaborativeData & {
     label: string;
     kind: UmlStateKind;
     entryAction?: string;
@@ -161,78 +168,23 @@ export type UmlStateData = {
 };
 export type UmlStateNode = Node<UmlStateData, "umlState">;
 
-// --- Types supplémentaires pour compatibilité ---
-export type UmlObjectSlot = { id: string; attribute: string; value: string };
-export type UmlObjectData = { instanceName: string; className: string; slots: UmlObjectSlot[]; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlObjectNode = Node<UmlObjectData, "umlObject">;
+// --- Types Globaux Union ---
+export type FlowCustomNode =
+    | McdEntityNode
+    | McdAssociationNode
+    | MldTableNode
+    | UmlActorNode
+    | UmlUseCaseNode
+    | UmlClassNode
+    | UmlLifelineNode
+    | UmlActivityNode
+    | UmlDeploymentNode
+    | UmlStateNode;
 
-export type UmlComponentInterface = { id: string; name: string; kind: "provided" | "required" };
-export type UmlComponentData = { label: string; interfaces: UmlComponentInterface[]; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlComponentNode = Node<UmlComponentData, "umlComponent">;
+export type FlowCustomEdge = McdEdge | MldEdge;
 
-export type UmlPackageData = { label: string; stereotype?: string; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlPackageNode = Node<UmlPackageData, "umlPackage">;
-
-export type UmlCompositePart = { id: string; name: string; type: string; multiplicity?: string };
-export type UmlCompositeData = { label: string; parts: UmlCompositePart[]; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlCompositeNode = Node<UmlCompositeData, "umlComposite">;
-
-export type UmlProfileData = { label: string; isStereotype: boolean; isMetaclass: boolean; attributes?: UmlAttribute[]; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlProfileNode = Node<UmlProfileData, "umlProfile">;
-
-export type UmlCommunicationData = { label: string; instanceName?: string; className?: string; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlCommunicationNode = Node<UmlCommunicationData, "umlCommunication">;
-
-export type UmlInteractionData = { label: string; kind: "ref" | "sd" | "decision" | "initial" | "final"; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlInteractionNode = Node<UmlInteractionData, "umlInteraction">;
-
-export type UmlTimingStateRow = { id: string; state: string; color?: string };
-export type UmlTimingData = { label: string; stateRows: UmlTimingStateRow[]; onEdit?: (id: string) => void; onDelete?: (id: string) => void; };
-export type UmlTimingNode = Node<UmlTimingData, "umlTiming">;
-
-// --- Types Liaisons & Arêtes UML ---
-export type UmlRelationType =
-    | "association"
-    | "aggregation"
-    | "composition"
-    | "inheritance"
-    | "implementation"
-    | "dependency"
-    | "include"
-    | "extend"
-    | "transition"
-    | "message_sync"
-    | "message_async"
-    | "message_reply"
-    | "deployment";
-
-export type UmlEdgeData = Record<string, unknown> & {
-    relationType?: UmlRelationType;
-    cardinality?: string;
-    sourceField?: string;
-    targetField?: string;
-    onDeleteEdge?: (id: string) => void;
-};
-export type UmlEdge = Edge<UmlEdgeData>;
-
-// --- Union Types pour React Flow ---
-export type FlowCustomEdgeData = McdEdgeData | MldEdgeData | UmlEdgeData;
-export type FlowCustomNode = Node<any>;
-export type FlowCustomEdge = Edge<any>;
-
-// --- Type de suppression en attente ---
 export type PendingDeletion =
-    | {
-          kind: "node";
-          id: string;
-          name: string;
-          nodeType: string;
-          connectedEdgeIds: string[];
-      }
-    | { kind: "edge"; id: string; label?: string }
-    | {
-          kind: "flow";
-          nodes: FlowCustomNode[];
-          edges: FlowCustomEdge[];
-          resolve: (approved: boolean) => void;
-      };
+    | { kind: "node"; id: string; name: string; nodeType: string; connectedEdgeIds: string[] }
+    | { kind: "edge"; id: string }
+    | { kind: "flow"; nodes: FlowCustomNode[]; edges: FlowCustomEdge[]; resolve: (value: boolean) => void }
+    | null;

@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Key, Link as LinkIcon } from "lucide-react";
 import { MldTableNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function MldTableNodeComponent({ id, data }: NodeProps<MldTableNode>) {
-    const { label, columns, linkedColumnIds } = data;
+    const { label, columns, linkedColumnIds, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     return (
-        <Card className="w-[280px] bg-card border-border text-card-foreground shadow-xl overflow-hidden py-0 transition-all hover:border-slate-400 dark:hover:border-slate-600">
+        <Card className="w-[280px] bg-card border-border text-card-foreground shadow-xl overflow-hidden py-0 transition-all hover:border-slate-400 dark:hover:border-slate-600 group">
             <CardHeader className="bg-muted/50 px-3 py-2 border-b border-border flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-2">
                     <CardTitle className="text-xs font-bold tracking-wide">{label}</CardTitle>
@@ -18,6 +19,13 @@ export function MldTableNodeComponent({ id, data }: NodeProps<MldTableNode>) {
                     </Badge>
                 </div>
                 <div className="flex items-center gap-1">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button
                         variant="ghost"
                         size="icon"

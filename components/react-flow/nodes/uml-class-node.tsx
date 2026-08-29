@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Box, Cpu, FileCode2, ListFilter } from "lucide-react";
 import { UmlClassNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function UmlClassNodeComponent({ id, data }: NodeProps<UmlClassNode>) {
-    const { label, classType, attributes, methods } = data;
+    const { label, classType, attributes, methods, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     const classTypeColor: Record<string, string> = {
         class: "border-indigo-500/40 text-indigo-600 dark:text-indigo-400 bg-indigo-500/10",
@@ -16,7 +17,7 @@ export function UmlClassNodeComponent({ id, data }: NodeProps<UmlClassNode>) {
     };
 
     return (
-        <Card className={`w-[290px] bg-card border-2 text-card-foreground shadow-2xl overflow-hidden py-0 transition-all ${classTypeColor[classType] || "border-border"}`}>
+        <Card className={`w-[290px] bg-card border-2 text-card-foreground shadow-2xl overflow-hidden py-0 transition-all group ${classTypeColor[classType] || "border-border"}`}>
             {/* Handles de connexion (Left, Right, Top, Bottom) */}
             <Handle type="target" position={Position.Left} id="left" className="!bg-indigo-500 !w-3 !h-3 hover:!scale-125 transition-transform" />
             <Handle type="source" position={Position.Left} id="left-src" className="!bg-indigo-500 !w-3 !h-3 hover:!scale-125 transition-transform" />
@@ -40,6 +41,13 @@ export function UmlClassNodeComponent({ id, data }: NodeProps<UmlClassNode>) {
                     </CardTitle>
 
                     <div className="flex items-center gap-0.5">
+                        <NodeCommentBadge
+                            nodeId={id}
+                            nodeLabel={label}
+                            commentCount={commentCount}
+                            unresolvedCount={unresolvedCommentCount}
+                            onOpenComments={onOpenComments}
+                        />
                         <Button
                             variant="ghost"
                             size="icon"

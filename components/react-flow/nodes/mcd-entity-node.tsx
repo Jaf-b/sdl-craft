@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2 } from "lucide-react";
 import { McdEntityNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function McdEntityNodeComponent({ id, data }: NodeProps<McdEntityNode>) {
-    const { label, attributes } = data;
+    const { label, attributes, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     return (
-        <Card className="w-[260px] bg-card border-primary/40 text-card-foreground shadow-xl overflow-hidden py-0 transition-all hover:border-primary">
+        <Card className="w-[260px] bg-card border-primary/40 text-card-foreground shadow-xl overflow-hidden py-0 transition-all hover:border-primary group">
             {/* Handles de connexion (Left, Right, Top, Bottom) */}
             <Handle type="target" position={Position.Left} id="left" className="!bg-primary !w-3 !h-3 hover:!scale-125 transition-transform" />
             <Handle type="source" position={Position.Left} id="left-src" className="!bg-primary !w-3 !h-3 hover:!scale-125 transition-transform" />
@@ -29,6 +30,13 @@ export function McdEntityNodeComponent({ id, data }: NodeProps<McdEntityNode>) {
                     </Badge>
                 </div>
                 <div className="flex items-center gap-1">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button
                         variant="ghost"
                         size="icon"

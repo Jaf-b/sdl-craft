@@ -2,9 +2,10 @@ import { NodeProps, Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { McdAssociationNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function McdAssociationNodeComponent({ id, data }: NodeProps<McdAssociationNode>) {
-    const { label, attributes } = data;
+    const { label, attributes, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     return (
         <div className="relative group">
@@ -36,6 +37,13 @@ export function McdAssociationNodeComponent({ id, data }: NodeProps<McdAssociati
 
                 {/* Actions au survol ou constantes */}
                 <div className="absolute -top-3 right-2 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button
                         variant="ghost"
                         size="icon"

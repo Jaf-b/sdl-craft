@@ -2,9 +2,10 @@ import { NodeProps, Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { User, Pencil, Trash2 } from "lucide-react";
 import { UmlActorNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function UmlActorNodeComponent({ id, data }: NodeProps<UmlActorNode>) {
-    const { label, roleDescription } = data;
+    const { label, roleDescription, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     return (
         <div className="relative group flex flex-col items-center">
@@ -35,6 +36,13 @@ export function UmlActorNodeComponent({ id, data }: NodeProps<UmlActorNode>) {
 
             {/* Actions au survol */}
             <div className="absolute -top-3 right-0 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                <NodeCommentBadge
+                    nodeId={id}
+                    nodeLabel={label}
+                    commentCount={commentCount}
+                    unresolvedCount={unresolvedCommentCount}
+                    onOpenComments={onOpenComments}
+                />
                 <Button
                     variant="ghost"
                     size="icon"

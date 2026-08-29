@@ -10,10 +10,12 @@ import {
     EdgeTypes,
 } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
+import { useThreads } from "@liveblocks/react/suspense";
+import { NodeCommentsModal } from "@/components/comments/node-comments-modal";
 import "@xyflow/react/dist/style.css";
 
 // Icons & UI
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle, X, MessageSquare, Eye, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Types
@@ -270,7 +272,12 @@ const INITIAL_EDGES: FlowCustomEdge[] = [
     },
 ];
 
-export function FlowDiagram() {
+export type FlowDiagramProps = {
+    isReadOnly?: boolean;
+    onOpenCommentsSidebar?: () => void;
+};
+
+export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowDiagramProps) {
     // Mode de modélisation actif : MCD ou MLD
     const [mode, setMode] = useState<ModelingMode>("MCD");
 
@@ -311,6 +318,26 @@ export function FlowDiagram() {
         nodes: { initial: INITIAL_NODES },
         edges: { initial: INITIAL_EDGES },
     });
+
+    // Liveblocks Threads & Commentaires attachés aux nœuds
+    const { threads } = useThreads();
+    const [selectedNodeForComments, setSelectedNodeForComments] = useState<{ id: string; name: string } | null>(null);
+
+    // Statistiques des commentaires par nœud (total et non résolus)
+    const nodeCommentsStats = useMemo(() => {
+        const stats: Record<string, { total: number; unresolved: number }> = {};
+        threads.forEach((thread) => {
+            const nodeId = thread.metadata?.nodeId as string | undefined;
+            if (nodeId) {
+                if (!stats[nodeId]) stats[nodeId] = { total: 0, unresolved: 0 };
+                stats[nodeId].total += 1;
+                if (!thread.resolved) {
+                    stats[nodeId].unresolved += 1;
+                }
+            }
+        });
+        return stats;
+    }, [threads]);
 
     // Modales & Notifications
     const [isMcdEntityModalOpen, setIsMcdEntityModalOpen] = useState(false);
@@ -353,6 +380,30 @@ export function FlowDiagram() {
     const [edgeSourceHandle, setEdgeSourceHandle] = useState<string | undefined>(undefined);
     const [edgeTargetHandle, setEdgeTargetHandle] = useState<string | undefined>(undefined);
     const [edgeCardinality, setEdgeCardinality] = useState<string>("1,N");
+
+    // Menu contextuel clic-droit sur les nœuds
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        nodeId: string;
+        nodeName: string;
+    } | null>(null);
+
+    const handleNodeContextMenu = useCallback(
+        (event: React.MouseEvent, node: FlowCustomNode) => {
+            event.preventDefault();
+            const nodeName = (node.data as { label?: string }).label || node.id;
+            setContextMenu({
+                x: event.clientX,
+                y: event.clientY,
+                nodeId: node.id,
+                nodeName,
+            });
+        },
+        []
+    );
+
+    const closeContextMenu = useCallback(() => setContextMenu(null), []);
 
     // Calcul des colonnes reliées en MLD
     const linkedColumnIds = useMemo<Set<string>>(() => {
@@ -985,16 +1036,23 @@ export function FlowDiagram() {
 
     // Enrichissement dynamique des nœuds filtrés avec handlers callbacks
     const enrichedNodes = useMemo(() => {
-        return filteredNodes.map((node) => ({
-            ...node,
-            data: {
-                ...node.data,
-                linkedColumnIds: node.type === "databaseTable" ? linkedColumnIds : undefined,
-                onEdit: handleEditNode,
-                onDelete: handleDeleteNode,
-            },
-        }));
-    }, [filteredNodes, linkedColumnIds, handleEditNode, handleDeleteNode]);
+        return filteredNodes.map((node) => {
+            const stats = nodeCommentsStats[node.id];
+            return {
+                ...node,
+                data: {
+                    ...node.data,
+                    linkedColumnIds: node.type === "databaseTable" ? linkedColumnIds : undefined,
+                    onEdit: isReadOnly ? undefined : handleEditNode,
+                    onDelete: isReadOnly ? undefined : handleDeleteNode,
+                    commentCount: stats?.total ?? 0,
+                    unresolvedCommentCount: stats?.unresolved ?? 0,
+                    onOpenComments: (nodeId: string, nodeName: string) =>
+                        setSelectedNodeForComments({ id: nodeId, name: nodeName }),
+                },
+            };
+        });
+    }, [filteredNodes, linkedColumnIds, handleEditNode, handleDeleteNode, isReadOnly, nodeCommentsStats]);
 
     // Enrichissement dynamique des arêtes avec callback de suppression directe
     const enrichedEdges = useMemo(() => {
@@ -1002,42 +1060,53 @@ export function FlowDiagram() {
             ...edge,
             data: {
                 ...edge.data,
-                onDeleteEdge: handleDeleteEdge,
+                onDeleteEdge: isReadOnly ? undefined : handleDeleteEdge,
             },
         }));
-    }, [filteredEdges, handleDeleteEdge]);
+    }, [filteredEdges, handleDeleteEdge, isReadOnly]);
 
     return (
         <div className="w-full h-screen relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+            {/* Bannière Mode Lecture Seule */}
+            {isReadOnly && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-1.5 rounded-full shadow-lg text-xs flex items-center gap-2 backdrop-blur-md">
+                    <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping" />
+                    <span className="font-semibold">Mode Lecture Seule</span>
+                    <span className="text-amber-200/70 hidden sm:inline">— Vous pouvez visualiser le diagramme et participer aux commentaires</span>
+                </div>
+            )}
+
             {/* Barre d'outils MCD / MLD / UML */}
-            <FlowToolbar
-                mode={mode}
-                onModeChange={handleModeChange}
-                umlDiagramType={umlDiagramType}
-                onOpenUmlDiagramSelector={() => setIsUmlDiagramSelectorOpen(true)}
-                // MCD
-                onOpenCreateEntity={handleOpenCreateEntity}
-                onOpenCreateAssociation={handleOpenCreateAssociation}
-                onGenerateMldFromMcd={handleGenerateMldFromMcd}
-                // MLD
-                onOpenCreateTable={handleOpenCreateTable}
-                // 1. Cas d'utilisation
-                onOpenCreateUmlActor={handleOpenCreateUmlActor}
-                onOpenCreateUmlUseCase={handleOpenCreateUmlUseCase}
-                // 2. Classes
-                onOpenCreateUmlClass={handleOpenCreateUmlClass}
-                // 3. Séquence
-                onOpenCreateUmlLifeline={handleOpenCreateUmlLifeline}
-                // 4. Activités
-                onOpenCreateUmlActivity={handleOpenCreateUmlActivity}
-                // 5. Déploiement
-                onOpenCreateUmlDeployment={handleOpenCreateUmlDeployment}
-                // 6. États-transitions
-                onOpenCreateUmlState={handleOpenCreateUmlState}
-                // Export
-                onToggleExportSidebar={() => setIsExportSidebarOpen((prev) => !prev)}
-                isSidebarOpen={isExportSidebarOpen}
-            />
+            {!isReadOnly && (
+                <FlowToolbar
+                    mode={mode}
+                    onModeChange={handleModeChange}
+                    umlDiagramType={umlDiagramType}
+                    onOpenUmlDiagramSelector={() => setIsUmlDiagramSelectorOpen(true)}
+                    // MCD
+                    onOpenCreateEntity={handleOpenCreateEntity}
+                    onOpenCreateAssociation={handleOpenCreateAssociation}
+                    onGenerateMldFromMcd={handleGenerateMldFromMcd}
+                    // MLD
+                    onOpenCreateTable={handleOpenCreateTable}
+                    // 1. Cas d'utilisation
+                    onOpenCreateUmlActor={handleOpenCreateUmlActor}
+                    onOpenCreateUmlUseCase={handleOpenCreateUmlUseCase}
+                    // 2. Classes
+                    onOpenCreateUmlClass={handleOpenCreateUmlClass}
+                    // 3. Séquence
+                    onOpenCreateUmlLifeline={handleOpenCreateUmlLifeline}
+                    // 4. Activités
+                    onOpenCreateUmlActivity={handleOpenCreateUmlActivity}
+                    // 5. Déploiement
+                    onOpenCreateUmlDeployment={handleOpenCreateUmlDeployment}
+                    // 6. États-transitions
+                    onOpenCreateUmlState={handleOpenCreateUmlState}
+                    // Export
+                    onToggleExportSidebar={() => setIsExportSidebarOpen((prev) => !prev)}
+                    isSidebarOpen={isExportSidebarOpen}
+                />
+            )}
 
             {/* Notification d'erreur */}
             {errorMessage && (
@@ -1058,10 +1127,13 @@ export function FlowDiagram() {
                 edgeTypes={edgeTypes}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                onConnect={handleConnect}
-                onDelete={onDelete}
-                onBeforeDelete={handleBeforeDelete}
-                onEdgeClick={(_, edge) => {
+                onConnect={isReadOnly ? undefined : handleConnect}
+                onDelete={isReadOnly ? undefined : onDelete}
+                onBeforeDelete={isReadOnly ? async () => false : handleBeforeDelete}
+                nodesDraggable={!isReadOnly}
+                nodesConnectable={!isReadOnly}
+                elementsSelectable={true}
+                onEdgeClick={isReadOnly ? undefined : (_, edge) => {
                     setEditingEdgeId(edge.id);
                     setEdgeSourceNodeId(edge.source);
                     setEdgeTargetNodeId(edge.target);
@@ -1072,13 +1144,76 @@ export function FlowDiagram() {
                     setEdgeCardinality(edge.data?.cardinality || (mode === "MCD" ? "1,N" : "1:N"));
                     setIsEdgeModalOpen(true);
                 }}
+                onNodeContextMenu={handleNodeContextMenu}
+                onPaneClick={closeContextMenu}
                 fitView
                 fitViewOptions={{ padding: 0.2 }}
             >
                 <Background />
                 <Controls />
                 <Cursors />
+
             </ReactFlow>
+
+            {/* Bouton flottant Commentaires (sidebar du projet) */}
+            {onOpenCommentsSidebar && (
+                <div className="absolute bottom-6 right-6 z-30">
+                    <Button
+                        onClick={onOpenCommentsSidebar}
+                        className="h-11 rounded-full shadow-xl gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-4"
+                        title="Voir tous les commentaires du projet"
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="hidden sm:inline">Commentaires</span>
+                    </Button>
+                </div>
+            )}
+
+            {/* Menu contextuel Clic-droit sur un nœud */}
+            {contextMenu && (
+                <>
+                    {/* Overlay pour fermer en cliquant en dehors */}
+                    <div
+                        className="fixed inset-0 z-40"
+                        onClick={closeContextMenu}
+                        onContextMenu={(e) => { e.preventDefault(); closeContextMenu(); }}
+                    />
+                    <div
+                        className="fixed z-50 min-w-[180px] rounded-xl border border-border bg-card/95 backdrop-blur-md shadow-2xl p-1.5 text-sm"
+                        style={{ top: contextMenu.y, left: contextMenu.x }}
+                    >
+                        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border mb-1 truncate max-w-[200px]">
+                            {contextMenu.nodeName}
+                        </div>
+                        <button
+                            onClick={() => {
+                                setSelectedNodeForComments({ id: contextMenu.nodeId, name: contextMenu.nodeName });
+                                closeContextMenu();
+                            }}
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-secondary/80 transition-colors text-left text-xs font-medium text-foreground"
+                        >
+                            <Eye className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            Voir les commentaires
+                        </button>
+                        <button
+                            onClick={() => {
+                                setSelectedNodeForComments({ id: contextMenu.nodeId, name: contextMenu.nodeName });
+                                closeContextMenu();
+                            }}
+                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors text-left text-xs font-medium"
+                        >
+                            <MessageSquarePlus className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
+                            Ajouter un commentaire
+                        </button>
+                    </div>
+                </>
+            )}
+
+            {/* Modale des commentaires d'un nœud spécifique */}
+            <NodeCommentsModal
+                selectedNode={selectedNodeForComments}
+                onClose={() => setSelectedNodeForComments(null)}
+            />
 
             {/* MODALES */}
             <McdEntityModal

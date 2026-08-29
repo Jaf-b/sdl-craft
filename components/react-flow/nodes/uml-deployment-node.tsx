@@ -3,9 +3,10 @@ import { Server, HardDrive, Cpu, Package, Cloud, Database, Pencil, Trash2 } from
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UmlDeploymentNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function UmlDeploymentNodeComponent({ id, data, selected }: NodeProps<UmlDeploymentNode>) {
-  const { label, kind, stereotype } = data;
+  const { label, kind, stereotype, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
   const iconMap = {
     node: Server,
@@ -24,7 +25,7 @@ export function UmlDeploymentNodeComponent({ id, data, selected }: NodeProps<Uml
   const IconComponent = iconMap[kind] || Server;
 
   return (
-    <div className={`w-[220px] rounded-lg border-2 bg-card shadow-lg transition-all ${colorMap[kind] || "border-cyan-500/60"} ${selected ? "ring-2 ring-cyan-400" : ""}`}>
+    <div className={`w-[220px] rounded-lg border-2 bg-card shadow-lg transition-all group ${colorMap[kind] || "border-cyan-500/60"} ${selected ? "ring-2 ring-cyan-400" : ""}`}>
       {/* Handles – 4 côtés */}
       <Handle id="top" type="target" position={Position.Top} className="!bg-cyan-500 !w-2.5 !h-2.5" />
       <Handle id="top-src" type="source" position={Position.Top} className="!bg-cyan-500 !w-2.5 !h-2.5" style={{ left: "65%" }} />
@@ -52,7 +53,14 @@ export function UmlDeploymentNodeComponent({ id, data, selected }: NodeProps<Uml
         </div>
 
         {/* Actions */}
-        <div className="flex gap-0.5 shrink-0">
+        <div className="flex items-center gap-0.5 shrink-0">
+          <NodeCommentBadge
+            nodeId={id}
+            nodeLabel={label || "Nœud de déploiement"}
+            commentCount={commentCount}
+            unresolvedCount={unresolvedCommentCount}
+            onOpenComments={onOpenComments}
+          />
           <Button
             size="icon"
             variant="ghost"

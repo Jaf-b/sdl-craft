@@ -2,9 +2,10 @@ import { NodeProps, Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { UmlUseCaseNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function UmlUseCaseNodeComponent({ id, data }: NodeProps<UmlUseCaseNode>) {
-    const { label, description } = data;
+    const { label, description, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     return (
         <div className="relative group">
@@ -32,6 +33,13 @@ export function UmlUseCaseNodeComponent({ id, data }: NodeProps<UmlUseCaseNode>)
 
                 {/* Actions au survol */}
                 <div className="absolute -top-3 right-3 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button
                         variant="ghost"
                         size="icon"

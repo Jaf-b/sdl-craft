@@ -1,10 +1,11 @@
-﻿import { NodeProps, Handle, Position } from "@xyflow/react";
+import { NodeProps, Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { UmlStateNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function UmlStateNodeComponent({ id, data, selected }: NodeProps<UmlStateNode>) {
-    const { label, kind, entryAction, doAction, exitAction } = data;
+    const { label, kind, entryAction, doAction, exitAction, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     const handles = (
         <>
@@ -53,6 +54,13 @@ export function UmlStateNodeComponent({ id, data, selected }: NodeProps<UmlState
                     </span>
                 )}
                 <div className="absolute -top-3 right-0 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label || "Choix"}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button variant="ghost" size="icon" className="h-4 w-4 text-muted-foreground hover:text-foreground"
                         onClick={(e) => { e.stopPropagation(); data.onEdit?.(id); }}>
                         <Pencil className="h-2.5 w-2.5" />
@@ -73,6 +81,13 @@ export function UmlStateNodeComponent({ id, data, selected }: NodeProps<UmlState
                 {handles}
                 <div className="w-32 h-2 bg-gray-900 rounded-sm shadow-md" />
                 <div className="absolute -top-4 right-0 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label || "Fork/Join"}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button variant="ghost" size="icon" className="h-4 w-4 text-muted-foreground hover:text-foreground"
                         onClick={(e) => { e.stopPropagation(); data.onEdit?.(id); }}>
                         <Pencil className="h-2.5 w-2.5" />
@@ -129,6 +144,13 @@ export function UmlStateNodeComponent({ id, data, selected }: NodeProps<UmlState
 
                 {/* Boutons */}
                 <div className="absolute -top-3 right-2 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label || "État"}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground hover:text-foreground"
                         onClick={(e) => { e.stopPropagation(); data.onEdit?.(id); }}>
                         <Pencil className="h-2.5 w-2.5" />

@@ -90,7 +90,7 @@ export function FlowToolbar({
     const ActiveIcon = meta.icon;
 
     return (
-        <div className="absolute top-4 left-4 z-10 flex flex-wrap items-center gap-2 bg-background/85 backdrop-blur-md p-2 rounded-xl border border-border shadow-2xl max-w-[calc(100vw-2rem)]">
+        <div className="absolute bottom-7 left-70 z-10 flex flex-wrap items-center gap-2 bg-background/85 backdrop-blur-md p-2 rounded-xl border border-border shadow-2xl max-w-[calc(100vw-2rem)]">
             {/* Sélecteur de mode : MCD / MLD / UML */}
             <Tabs value={mode} onValueChange={(val) => onModeChange(val as ModelingMode)}>
                 <TabsList className="bg-card border border-border h-9">
@@ -235,11 +235,6 @@ export function FlowToolbar({
                 <span className="hidden md:inline">Exporter</span>
             </Button>
 
-            {/* Astuce */}
-            <Badge variant="outline" className="hidden xl:flex items-center gap-1 text-[10px] font-normal py-1 px-2 text-muted-foreground bg-muted/30">
-                <Info className="h-3 w-3 text-primary shrink-0" />
-                <span>Cliquez sur <strong className="text-destructive font-mono">X</strong> pour supprimer</span>
-            </Badge>
         </div>
     );
 }

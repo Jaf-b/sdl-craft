@@ -2,9 +2,10 @@ import { NodeProps, Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { UmlActivityNode } from "../types";
+import { NodeCommentBadge } from "../node-comment-badge";
 
 export function UmlActivityNodeComponent({ id, data }: NodeProps<UmlActivityNode>) {
-    const { label, nodeKind } = data;
+    const { label, nodeKind, commentCount, unresolvedCommentCount, onOpenComments } = data;
 
     // 1. État Initial UML (Cercle rempli)
     if (nodeKind === "initial") {
@@ -49,6 +50,13 @@ export function UmlActivityNodeComponent({ id, data }: NodeProps<UmlActivityNode
                 </div>
 
                 <div className="absolute -top-3 right-0 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-90 group-hover:opacity-100 transition-opacity z-10">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label || "Décision"}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button
                         variant="ghost"
                         size="icon"
@@ -83,6 +91,13 @@ export function UmlActivityNodeComponent({ id, data }: NodeProps<UmlActivityNode
                 </div>
 
                 <div className="absolute -top-3 right-2 bg-card border border-border rounded-md shadow flex items-center gap-0.5 p-0.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                    <NodeCommentBadge
+                        nodeId={id}
+                        nodeLabel={label || "Action"}
+                        commentCount={commentCount}
+                        unresolvedCount={unresolvedCommentCount}
+                        onOpenComments={onOpenComments}
+                    />
                     <Button
                         variant="ghost"
                         size="icon"
