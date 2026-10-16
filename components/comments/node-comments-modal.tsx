@@ -15,11 +15,9 @@ import {
     Sparkles,
     Trash2,
     MessageCircle,
-    Layers,
     Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 type NodeCommentsModalProps = {
     selectedNode: {
@@ -40,7 +38,7 @@ export function NodeCommentsModal({ selectedNode, onClose }: NodeCommentsModalPr
 
     // Filtrer les threads attachés à ce nœud spécifique
     const nodeThreads = threads.filter(
-        (thread) => thread.metadata?.nodeId === selectedNode.id
+        (thread) => (thread.metadata as { nodeId?: string })?.nodeId === selectedNode.id
     );
 
     const filteredThreads = nodeThreads.filter((thread) => {
@@ -65,7 +63,7 @@ export function NodeCommentsModal({ selectedNode, onClose }: NodeCommentsModalPr
         <Dialog open={Boolean(selectedNode)} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden bg-card text-card-foreground">
                 {/* En-tête de la modale */}
-                <DialogHeader className="p-4 pb-3 border-b border-border/60 bg-muted/20">
+                <DialogHeader className="p-4 pb-3 border-b border-border/60 bg-muted/20 shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5 min-w-0">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
@@ -83,56 +81,33 @@ export function NodeCommentsModal({ selectedNode, onClose }: NodeCommentsModalPr
                             </div>
                         </div>
 
-                        {/* Onglets de filtrage */}
-                        <div className="flex items-center bg-background rounded-lg p-0.5 border border-border text-[11px] shrink-0">
-                            <button
+                        {/* Onglets de filtrage avec Shadcn UI Button */}
+                        <div className="flex items-center bg-background rounded-lg p-0.5 border border-border shrink-0">
+                            <Button
+                                variant={filter === "unresolved" ? "secondary" : "ghost"}
+                                size="sm"
                                 onClick={() => setFilter("unresolved")}
-                                className={`px-2 py-0.5 rounded-md transition-colors ${
-                                    filter === "unresolved"
-                                        ? "bg-indigo-600 text-white font-medium shadow-xs"
-                                        : "text-muted-foreground hover:text-foreground"
+                                className={`h-6 px-2 text-[11px] rounded-md ${
+                                    filter === "unresolved" ? "bg-indigo-600 text-white font-medium hover:bg-indigo-600" : "text-muted-foreground hover:text-foreground"
                                 }`}
                             >
                                 Ouverts ({unresolvedCount})
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant={filter === "all" ? "secondary" : "ghost"}
+                                size="sm"
                                 onClick={() => setFilter("all")}
-                                className={`px-2 py-0.5 rounded-md transition-colors ${
-                                    filter === "all"
-                                        ? "bg-indigo-600 text-white font-medium shadow-xs"
-                                        : "text-muted-foreground hover:text-foreground"
+                                className={`h-6 px-2 text-[11px] rounded-md ${
+                                    filter === "all" ? "bg-indigo-600 text-white font-medium hover:bg-indigo-600" : "text-muted-foreground hover:text-foreground"
                                 }`}
                             >
                                 Tous ({nodeThreads.length})
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </DialogHeader>
 
-                {/* Saisie d'un nouveau commentaire attaché à ce nœud */}
-                <div className="p-4 border-b border-border/40 bg-secondary/10">
-                    <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                                <Sparkles className="h-3 w-3 text-indigo-400" />
-                                Laisser une note sur cet élément
-                            </span>
-                            <span className="text-[10px] text-muted-foreground/80 font-mono">
-                                Utilisez <strong className="text-indigo-400">@</strong> pour mentionner
-                            </span>
-                        </div>
-                        <div className="lb-root rounded-xl overflow-hidden border border-border/80 bg-background shadow-xs">
-                            <Composer
-                                metadata={{
-                                    nodeId: selectedNode.id,
-                                    nodeName: selectedNode.name,
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Liste des commentaires attachés à ce nœud */}
+                {/* Liste des commentaires attachés à ce nœud (en haut) */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[45vh]">
                     {filteredThreads.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center space-y-2 text-muted-foreground">
@@ -145,7 +120,7 @@ export function NodeCommentsModal({ selectedNode, onClose }: NodeCommentsModalPr
                                     : "Aucun commentaire pour cet élément"}
                             </p>
                             <p className="text-[11px] max-w-[260px]">
-                                Écrivez un message ci-dessus pour démarrer une discussion spécifique à <strong className="text-foreground">{selectedNode.name}</strong>.
+                                Écrivez un message ci-dessous pour démarrer une discussion spécifique à <strong className="text-foreground">{selectedNode.name}</strong>.
                             </p>
                         </div>
                     ) : (
@@ -176,6 +151,29 @@ export function NodeCommentsModal({ selectedNode, onClose }: NodeCommentsModalPr
                             </div>
                         ))
                     )}
+                </div>
+
+                {/* Saisie d'un nouveau commentaire attaché à ce nœud (en bas) */}
+                <div className="p-4 border-t border-border/40 bg-secondary/10 shrink-0 mt-auto">
+                    <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                                <Sparkles className="h-3 w-3 text-indigo-400" />
+                                Laisser une note sur cet élément
+                            </span>
+                            <span className="text-[10px] text-muted-foreground/80 font-mono">
+                                Utilisez <strong className="text-indigo-400">@</strong> pour mentionner
+                            </span>
+                        </div>
+                        <div className="lb-root rounded-xl overflow-hidden border border-border/80 bg-background shadow-xs">
+                            <Composer
+                                metadata={{
+                                    nodeId: selectedNode.id,
+                                    nodeName: selectedNode.name,
+                                }}
+                            />
+                        </div>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

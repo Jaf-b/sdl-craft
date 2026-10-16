@@ -6,7 +6,10 @@ import "@liveblocks/react-ui/styles/dark/media-query.css";
 import { cn } from "@/lib/utils";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
-import {Provider} from "@/app/provider";
+import { Provider } from "@/app/provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
+import AnimatedBackground from "@/components/landing/animated-background";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -32,9 +35,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col dark">
+      <AnimatedBackground />
         <ClerkProvider appearance={{ theme: shadcn }}>
           <Provider>
-            {children}
+            <TooltipProvider>
+              {children}
+              <Toaster />
+            </TooltipProvider>
           </Provider>
         </ClerkProvider>
       </body>

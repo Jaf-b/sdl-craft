@@ -6,6 +6,7 @@ import { ProjectList } from "@/components/project-list";
 import { getProjects } from "@/lib/actions/room.actions";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Layers, Database, Box } from "lucide-react";
+import AnimatedBackground from "@/components/landing/animated-background";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ async function ProjectPage() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
+            <AnimatedBackground />
             {/* Barre de navigation */}
             <Navbar />
 

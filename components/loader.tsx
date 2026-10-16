@@ -4,7 +4,7 @@ import {Layers, Loader2} from "lucide-react";
 function Loader() {
     return (
         <div className="w-full h-screen flex flex-col items-center justify-center bg-background space-y-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-xl shadow-indigo-500/20 animate-bounce">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-xl shadow-indigo-500/20 animate-bounce">
                 <Layers className="h-6 w-6 text-white" />
             </div>
             <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground">

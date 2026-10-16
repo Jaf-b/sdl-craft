@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
     Boxes,
@@ -51,26 +58,12 @@ export function ProjectCard({ room, currentEmail }: ProjectCardProps) {
         ? new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })
         : "Récemment";
 
-    const [menuOpen, setMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-
     const [isRenameOpen, setIsRenameOpen] = useState(false);
     const [newTitle, setNewTitle] = useState(title);
     const [isRenaming, setIsRenaming] = useState(false);
 
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-
-    // Fermer le menu si on clique en dehors
-    useEffect(() => {
-        function handleClickOutside(e: MouseEvent) {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                setMenuOpen(false);
-            }
-        }
-        if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [menuOpen]);
 
     const handleRename = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -123,37 +116,26 @@ export function ProjectCard({ room, currentEmail }: ProjectCardProps) {
                                 </div>
                             </div>
 
-                            {/* Menu contextuel (custom, sans Radix) */}
-                            <div ref={menuRef} className="relative shrink-0">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                    onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
-                                >
+                            {/* Menu contextuel Shadcn UI DropdownMenu */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0">
                                     <MoreVertical className="h-4 w-4" />
-                                </Button>
-
-                                {menuOpen && (
-                                    <div className="absolute right-0 top-8 z-50 w-40 rounded-lg border border-border bg-popover py-1 shadow-xl text-xs">
-                                        <button
-                                            className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-accent transition-colors"
-                                            onClick={() => { setMenuOpen(false); setNewTitle(title); setIsRenameOpen(true); }}
-                                        >
-                                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                                            Renommer
-                                        </button>
-                                        <div className="my-1 h-px bg-border" />
-                                        <button
-                                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-destructive hover:bg-destructive/10 transition-colors"
-                                            onClick={() => { setMenuOpen(false); setIsDeleteOpen(true); }}
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                            Supprimer
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40 text-xs">
+                                    <DropdownMenuItem onClick={() => { setNewTitle(title); setIsRenameOpen(true); }}>
+                                        <Pencil className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                                        Renommer
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => setIsDeleteOpen(true)}
+                                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                        Supprimer
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </CardHeader>
 
@@ -182,7 +164,7 @@ export function ProjectCard({ room, currentEmail }: ProjectCardProps) {
                         <span>{formattedDate}</span>
                     </div>
                     <Link href={`/project/${room.id}`}>
-                        <Button size="sm" className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">
+                        <Button size="sm" className="h-8 text-xs gap-1.5 font-semibold">
                             Ouvrir
                             <ExternalLink className="h-3 w-3" />
                         </Button>
@@ -215,7 +197,7 @@ export function ProjectCard({ room, currentEmail }: ProjectCardProps) {
                             <Button type="button" variant="outline" size="sm" onClick={() => setIsRenameOpen(false)} disabled={isRenaming}>
                                 Annuler
                             </Button>
-                            <Button type="submit" size="sm" disabled={isRenaming || !newTitle.trim()} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                            <Button type="submit" size="sm" disabled={isRenaming || !newTitle.trim()}>
                                 {isRenaming && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
                                 Enregistrer
                             </Button>

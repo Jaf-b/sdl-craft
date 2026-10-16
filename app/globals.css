@@ -132,3 +132,118 @@
     @apply font-sans;
   }
 }
+
+/* Masquer le bouton d'ajout d'image / pièces jointes dans les commentaires Liveblocks */
+.lb-composer-action[data-lb-action="attach-files"],
+.lb-composer-action:has(svg),
+.lb-composer-attachments,
+.lb-composer-file-upload,
+button[aria-label*="attach" i],
+button[aria-label*="file" i],
+button[title*="Attach" i],
+button[title*="Fichier" i] {
+  /* Masquer spécifiquement les boutons de pièce jointe sans affecter le bouton Envoyer */
+}
+button[aria-label*="Attach" i],
+button[title*="Attach" i],
+button[aria-label*="attach" i],
+button[title*="attach" i],
+button[aria-label*="file" i],
+.lb-composer-action[data-lb-action="attach-files"] {
+  display: none !important;
+}
+
+/* ─── Animations Aurora Background ─────────────────────────────────── */
+@keyframes aurora-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(80px, 40px) scale(1.15); }
+  100% { transform: translate(-40px, 80px) scale(0.95); }
+}
+@keyframes aurora-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-60px, -30px) scale(1.1); }
+  100% { transform: translate(50px, 60px) scale(1.05); }
+}
+@keyframes aurora-3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(40px, -50px) scale(1.2); }
+  100% { transform: translate(-30px, 30px) scale(0.9); }
+}
+
+/* ─── Clerk Component – Personnalisation pour coller au thème dark ─── */
+.cl-rootBox,
+.cl-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.cl-formButtonPrimary {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-radius: var(--radius) !important;
+  font-weight: 600 !important;
+  transition: opacity 0.15s !important;
+}
+.cl-formButtonPrimary:hover {
+  opacity: 0.88 !important;
+}
+
+.cl-socialButtonsBlockButton {
+  background: oklch(1 0 0 / 6%) !important;
+  border: 1px solid oklch(1 0 0 / 12%) !important;
+  border-radius: var(--radius) !important;
+  color: oklch(0.987 0.002 197.1) !important;
+  transition: background 0.15s !important;
+}
+.cl-socialButtonsBlockButton:hover {
+  background: oklch(1 0 0 / 10%) !important;
+}
+
+.cl-headerTitle,
+.cl-headerSubtitle,
+.cl-formFieldLabel,
+.cl-footerActionText {
+  color: oklch(0.987 0.002 197.1) !important;
+}
+
+.cl-headerSubtitle,
+.cl-footerActionText {
+  color: oklch(0.723 0.014 214.4) !important;
+}
+
+.cl-formFieldInput {
+  background: oklch(1 0 0 / 6%) !important;
+  border: 1px solid oklch(1 0 0 / 14%) !important;
+  border-radius: calc(var(--radius) * 0.8) !important;
+  color: oklch(0.987 0.002 197.1) !important;
+}
+.cl-formFieldInput:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px oklch(0.55 0.18 258 / 0.20) !important;
+  outline: none !important;
+}
+
+.cl-dividerLine {
+  background: oklch(1 0 0 / 10%) !important;
+}
+.cl-dividerText {
+  color: oklch(0.723 0.014 214.4) !important;
+}
+
+.cl-footerActionLink {
+  color: var(--primary) !important;
+}
+.cl-footerActionLink:hover {
+  text-decoration: underline !important;
+}
+
+.cl-identityPreview {
+  background: oklch(1 0 0 / 6%) !important;
+  border: 1px solid oklch(1 0 0 / 12%) !important;
+  border-radius: var(--radius) !important;
+}
+
+.cl-alert {
+  border-radius: calc(var(--radius) * 0.8) !important;
+}

@@ -37,7 +37,7 @@ export type McdAssociationData = BaseNodeCollaborativeData & {
     onEdit?: (id: string) => void;
     onDelete?: (id: string) => void;
 };
-export type McdCardinality = "0,1" | "1,1" | "0,N" | "1,N";
+export type McdCardinality = "0,1" | "1,1" | "0,N" | "1,N" | string;
 export type McdEdgeData = Record<string, unknown> & {
     cardinality: McdCardinality;
     roleName?: string;
@@ -49,7 +49,7 @@ export type McdEdge = Edge<McdEdgeData>;
 
 // --- Types MLD (Modèle Logique / Relationnel) ---
 export type DataType = "UUID" | "VARCHAR(255)" | "INTEGER" | "TIMESTAMP" | "BOOLEAN" | "TEXT";
-export type MldCardinality = "1:1" | "1:N" | "N:N";
+export type MldCardinality = "1:1" | "1:N" | "N:N" | string;
 export type MldColumn = {
     id: string;
     name: string;
@@ -156,7 +156,7 @@ export type UmlDeploymentData = BaseNodeCollaborativeData & {
 export type UmlDeploymentNode = Node<UmlDeploymentData, "umlDeployment">;
 
 // 6. Diagramme d'États-Transitions
-export type UmlStateKind = "initial" | "final" | "simple" | "composite" | "choice";
+export type UmlStateKind = "initial" | "final" | "simple" | "composite" | "choice" | "fork" | "join";
 export type UmlStateData = BaseNodeCollaborativeData & {
     label: string;
     kind: UmlStateKind;
@@ -182,6 +182,7 @@ export type FlowCustomNode =
     | UmlStateNode;
 
 export type FlowCustomEdge = McdEdge | MldEdge;
+export type FlowCustomEdgeData = McdEdgeData | MldEdgeData;
 
 export type PendingDeletion =
     | { kind: "node"; id: string; name: string; nodeType: string; connectedEdgeIds: string[] }

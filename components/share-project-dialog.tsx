@@ -14,6 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
     Share2,
     UserPlus,
     Copy,
@@ -122,7 +129,7 @@ export function ShareProjectDialog({
                 {trigger || (
                     <Button
                         size="sm"
-                        className="h-8 gap-1.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-500/20"
+                        className="h-8 gap-1.5 text-xs font-semibold"
                     >
                         <Share2 className="h-3.5 w-3.5" />
                         <span>Partager</span>
@@ -160,14 +167,18 @@ export function ShareProjectDialog({
                                         required
                                     />
                                     <div className="flex items-center gap-1.5 shrink-0">
-                                        <select
+                                        <Select
                                             value={userType}
-                                            onChange={(e) => setUserType(e.target.value as "editor" | "viewer")}
-                                            className="h-9 px-2.5 rounded-md text-xs bg-background border border-border text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                                            onValueChange={(val) => setUserType(val as "editor" | "viewer")}
                                         >
-                                            <option value="editor">Éditeur (Modifie)</option>
-                                            <option value="viewer">Lecteur (Vue seule)</option>
-                                        </select>
+                                            <SelectTrigger className="h-9 w-[160px] text-xs font-mono bg-background">
+                                                <SelectValue placeholder="Rôle" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="editor">Éditeur (Modifie)</SelectItem>
+                                                <SelectItem value="viewer">Lecteur (Vue seule)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <Button
                                             type="submit"
                                             size="sm"
@@ -231,15 +242,19 @@ export function ShareProjectDialog({
                                             <div className="flex items-center gap-2 shrink-0">
                                                 {canManageAccess ? (
                                                     <>
-                                                        <select
+                                                        <Select
                                                             disabled={isRowLoading}
                                                             value={collab.role}
-                                                            onChange={(e) => handleRoleChange(collab.email, e.target.value as "editor" | "viewer")}
-                                                            className="h-7 px-2 rounded text-[11px] bg-background border border-border font-mono focus:outline-none"
+                                                            onValueChange={(val) => handleRoleChange(collab.email, val as "editor" | "viewer")}
                                                         >
-                                                            <option value="editor">Éditeur</option>
-                                                            <option value="viewer">Lecteur</option>
-                                                        </select>
+                                                            <SelectTrigger className="h-7 w-[100px] text-[11px] font-mono bg-background">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="editor">Éditeur</SelectItem>
+                                                                <SelectItem value="viewer">Lecteur</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
 
                                                         <Button
                                                             variant="ghost"

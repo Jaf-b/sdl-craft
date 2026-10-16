@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Box, ArrowLeftRight, Zap, Cpu, GitBranch } from "lucide-react";
+import { User, Box, ArrowLeftRight, Zap, Cpu, GitBranch, Check } from "lucide-react";
 import { UmlDiagramType } from "../types";
 
 type DiagramOption = {
@@ -10,56 +10,63 @@ type DiagramOption = {
     description: string;
     icon: typeof Box;
     color: string;
+    badgeColor: string;
     category: "Structure" | "Comportement" | "Architecture";
 };
 
 const ESSENTIAL_DIAGRAMS: DiagramOption[] = [
     {
         type: "usecase",
-        title: "Cas d'utilisation (Use Case)",
-        description: "Définir ce que fait le système et identifier les acteurs/utilisateurs.",
+        title: "Cas d'utilisation",
+        description: "Définir les fonctionnalités du système et identifier les interactions avec les acteurs.",
         icon: User,
-        color: "border-purple-500/50 hover:border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-500/5",
+        color: "border-purple-500/30 hover:border-purple-500 bg-purple-500/5 hover:bg-purple-500/10 text-purple-600 dark:text-purple-400",
+        badgeColor: "bg-purple-500/10 text-purple-500 border-purple-500/20",
         category: "Comportement",
     },
     {
         type: "class",
         title: "Diagramme de classes",
-        description: "Cœur de la conception OO : structure des données, entités, méthodes et héritage.",
+        description: "Modéliser les classes, attributs, méthodes, relations et structures de données.",
         icon: Box,
-        color: "border-indigo-500/50 hover:border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-500/5",
+        color: "border-indigo-500/30 hover:border-indigo-500 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+        badgeColor: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
         category: "Structure",
     },
     {
         type: "sequence",
         title: "Diagramme de séquence",
-        description: "Logique métier, échanges d'API et flux de messages étape par étape dans le temps.",
+        description: "Visualiser les échanges chronologiques et flux de messages entre objets et API.",
         icon: ArrowLeftRight,
-        color: "border-teal-500/50 hover:border-teal-500 text-teal-600 dark:text-teal-400 bg-teal-500/5",
+        color: "border-teal-500/30 hover:border-teal-500 bg-teal-500/5 hover:bg-teal-500/10 text-teal-600 dark:text-teal-400",
+        badgeColor: "bg-teal-500/10 text-teal-500 border-teal-500/20",
         category: "Comportement",
     },
     {
         type: "activity",
         title: "Diagramme d'activités",
-        description: "Algorithmes, workflows et processus métiers multi-étapes (actions, décisions, fork/join).",
+        description: "Représenter les workflows, algorithmes et processus décisionnels étape par étape.",
         icon: Zap,
-        color: "border-amber-500/50 hover:border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-500/5",
+        color: "border-amber-500/30 hover:border-amber-500 bg-amber-500/5 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        badgeColor: "bg-amber-500/10 text-amber-500 border-amber-500/20",
         category: "Comportement",
     },
     {
         type: "deployment",
         title: "Diagramme de déploiement",
-        description: "DevOps, Cloud et infrastructure : serveurs, conteneurs, bases de données, réseaux.",
+        description: "Cartographier l'infrastructure physique et cloud : serveurs, nœuds et conteneurs.",
         icon: Cpu,
-        color: "border-cyan-500/50 hover:border-cyan-500 text-cyan-600 dark:text-cyan-400 bg-cyan-500/5",
+        color: "border-cyan-500/30 hover:border-cyan-500 bg-cyan-500/5 hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
+        badgeColor: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
         category: "Architecture",
     },
     {
         type: "state",
-        title: "Diagramme d'états-transitions",
-        description: "Logique des entités ayant des cycles de vie stricts (ex: En attente -> Payée -> Livrée).",
+        title: "États-transitions",
+        description: "Spécifier le cycle de vie et les changements d'état d'un objet en réponse aux événements.",
         icon: GitBranch,
-        color: "border-orange-500/50 hover:border-orange-500 text-orange-600 dark:text-orange-400 bg-orange-500/5",
+        color: "border-orange-500/30 hover:border-orange-500 bg-orange-500/5 hover:bg-orange-500/10 text-orange-600 dark:text-orange-400",
+        badgeColor: "bg-orange-500/10 text-orange-500 border-orange-500/20",
         category: "Comportement",
     },
 ];
@@ -79,18 +86,24 @@ export function UmlDiagramSelectorModal({ isOpen, onClose, currentDiagramType, o
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-card border-border text-card-foreground max-w-2xl max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-base font-bold">
-                        <Box className="h-5 w-5 text-indigo-500" />
-                        Choisir le Diagramme UML
-                    </DialogTitle>
-                    <DialogDescription className="text-xs text-muted-foreground">
-                        Sélectionnez l'un des 6 diagrammes UML essentiels. La barre d'outils s'adaptera automatiquement.
-                    </DialogDescription>
+            <DialogContent className="bg-card border-border text-card-foreground sm:max-w-4xl lg:max-w-5xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
+                <DialogHeader className="space-y-1.5 pb-2 border-b border-border/50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500">
+                            <Box className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <DialogTitle className="text-xl font-bold tracking-tight">
+                                Sélectionner un Diagramme UML
+                            </DialogTitle>
+                            <DialogDescription className="text-sm text-muted-foreground">
+                                Choisissez parmi les 6 modèles UML officiels. La barre d'outils s'adaptera automatiquement.
+                            </DialogDescription>
+                        </div>
+                    </div>
                 </DialogHeader>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
                     {ESSENTIAL_DIAGRAMS.map((opt) => {
                         const Icon = opt.icon;
                         const isSelected = currentDiagramType === opt.type;
@@ -98,36 +111,47 @@ export function UmlDiagramSelectorModal({ isOpen, onClose, currentDiagramType, o
                         return (
                             <Card
                                 key={opt.type}
-                                className={`cursor-pointer transition-all border-2 p-3 relative group ${opt.color} ${
+                                className={`cursor-pointer transition-all duration-200 border-2 p-5 relative group flex flex-col justify-between rounded-xl ${opt.color} ${
                                     isSelected
-                                        ? "ring-2 ring-primary shadow-lg shadow-primary/10 scale-[1.01]"
-                                        : "hover:shadow-md hover:scale-[1.005]"
+                                        ? "ring-2 ring-primary border-primary shadow-xl scale-[1.02] bg-primary/5"
+                                        : "hover:shadow-lg hover:scale-[1.01]"
                                 }`}
                                 onClick={() => handleSelect(opt.type)}
                             >
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-background/80 border border-border shrink-0 group-hover:scale-110 transition-transform">
-                                        <Icon className="h-5 w-5" />
-                                    </div>
-                                    <div className="space-y-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-1">
-                                            <CardTitle className="text-xs font-bold font-mono leading-tight">
-                                                {opt.title}
-                                            </CardTitle>
-                                            <Badge variant="outline" className="text-[9px] px-1 py-0 shrink-0 font-normal">
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="p-3 rounded-xl bg-background/90 border border-border shadow-xs group-hover:scale-105 transition-transform">
+                                            <Icon className="h-6 w-6" />
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <Badge variant="outline" className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${opt.badgeColor}`}>
                                                 {opt.category}
                                             </Badge>
+                                            {isSelected && (
+                                                <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xs">
+                                                    <Check className="h-3.5 w-3.5 stroke-[3]" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <CardDescription className="text-[11px] text-muted-foreground leading-snug">
+                                    </div>
+
+                                    <div>
+                                        <CardTitle className="text-base font-bold tracking-tight">
+                                            {opt.title}
+                                        </CardTitle>
+                                        <CardDescription className="text-xs text-muted-foreground leading-relaxed mt-1.5">
                                             {opt.description}
                                         </CardDescription>
                                     </div>
                                 </div>
-                                {isSelected && (
-                                    <div className="absolute top-2 right-2">
-                                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                    </div>
-                                )}
+
+                                <div className="pt-4 mt-2 flex items-center justify-end">
+                                    <span className={`text-xs font-semibold flex items-center gap-1 transition-colors ${
+                                        isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                    }`}>
+                                        {isSelected ? "Diagramme actif" : "Choisir ce modèle →"}
+                                    </span>
+                                </div>
                             </Card>
                         );
                     })}
@@ -136,3 +160,5 @@ export function UmlDiagramSelectorModal({ isOpen, onClose, currentDiagramType, o
         </Dialog>
     );
 }
+
+export default UmlDiagramSelectorModal;

@@ -15,7 +15,7 @@ export function Navbar() {
                 {/* Logo & Marque */}
                 <div className="flex items-center gap-6">
                     <Link href="/project" className="flex items-center gap-2.5 group">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md group-hover:scale-105 transition-transform">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary shadow-md group-hover:scale-105 transition-transform">
                             <Layers className="h-5 w-5 text-white" />
                         </div>
                         <div className="flex flex-col">

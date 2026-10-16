@@ -34,7 +34,9 @@ import {
     McdEntityNode,
     McdAssociationNode,
     MldTableNode,
+    MldTableData,
     MldEdge,
+    MldEdgeData,
     UmlClassNode,
     UmlActorNode,
     UmlUseCaseNode,
@@ -409,8 +411,9 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
     const linkedColumnIds = useMemo<Set<string>>(() => {
         const set = new Set<string>();
         edges.forEach((edge) => {
-            if (edge.data?.sourceField) set.add(edge.data.sourceField);
-            if (edge.data?.targetField) set.add(edge.data.targetField);
+            const data = edge.data as MldEdgeData | undefined;
+            if (data?.sourceField) set.add(data.sourceField);
+            if (data?.targetField) set.add(data.targetField);
         });
         return set;
     }, [edges]);
@@ -575,7 +578,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                     {
                         type: "replace",
                         id: editingNodeId,
-                        item: { ...targetNode, data: { ...targetNode.data, label, kind, entryAction, doAction, exitAction } },
+                        item: { ...targetNode, data: { ...targetNode.data, label, kind, entryAction, doAction, exitAction } } as FlowCustomNode,
                     },
                 ]);
             }
@@ -608,7 +611,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                     {
                         type: "replace",
                         id: editingNodeId,
-                        item: { ...targetNode, data: { ...targetNode.data, label, instanceName, className, isActor } },
+                        item: { ...targetNode, data: { ...targetNode.data, label, instanceName, className, isActor } } as FlowCustomNode,
                     },
                 ]);
             }
@@ -694,7 +697,8 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
 
         if (mode === "MLD") {
             const srcFieldId = connection.sourceHandle?.replace("source-", "").replace("target-", "") || "";
-            const srcColumn = srcNode.data.columns?.find((c: MldColumn) => c.id === srcFieldId);
+            const srcColumns = (srcNode.data as MldTableData).columns || [];
+            const srcColumn = srcColumns.find((c: MldColumn) => c.id === srcFieldId);
 
             if (!srcColumn?.isPk) {
                 setErrorMessage(`Liaison MLD impossible : "${srcColumn?.name || srcFieldId}" dans "${srcNode.data.label}" n'est pas une clé primaire (PK).`);
@@ -703,7 +707,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
             }
 
             const tgtFieldId = connection.targetHandle?.replace("source-", "").replace("target-", "") || "";
-            const tgtColumns = tgtNode.data.columns || [];
+            const tgtColumns = (tgtNode.data as MldTableData).columns || [];
 
             setEditingEdgeId(null);
             setEdgeSourceNodeId(connection.source);
@@ -748,7 +752,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                     {
                         type: "replace",
                         id: editingNodeId,
-                        item: { ...node, data: { ...node.data, label: name, attributes } },
+                        item: { ...node, data: { ...node.data, label: name, attributes } } as FlowCustomNode,
                     },
                 ]);
             }
@@ -773,7 +777,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                     {
                         type: "replace",
                         id: editingNodeId,
-                        item: { ...node, data: { ...node.data, label: name, attributes } },
+                        item: { ...node, data: { ...node.data, label: name, attributes } } as FlowCustomNode,
                     },
                 ]);
             }
@@ -798,7 +802,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                     {
                         type: "replace",
                         id: editingNodeId,
-                        item: { ...targetNode, data: { ...targetNode.data, label: tableName, columns } },
+                        item: { ...targetNode, data: { ...targetNode.data, label: tableName, columns } } as FlowCustomNode,
                     },
                 ]);
             }
@@ -823,7 +827,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                     {
                         type: "replace",
                         id: editingNodeId,
-                        item: { ...targetNode, data: { ...targetNode.data, label: name, classType, attributes, methods } },
+                        item: { ...targetNode, data: { ...targetNode.data, label: name, classType, attributes, methods } } as FlowCustomNode,
                     },
                 ]);
             }
@@ -1051,7 +1055,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                         setSelectedNodeForComments({ id: nodeId, name: nodeName }),
                 },
             };
-        });
+        }) as FlowCustomNode[];
     }, [filteredNodes, linkedColumnIds, handleEditNode, handleDeleteNode, isReadOnly, nodeCommentsStats]);
 
     // Enrichissement dynamique des arêtes avec callback de suppression directe
@@ -1062,7 +1066,7 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                 ...edge.data,
                 onDeleteEdge: isReadOnly ? undefined : handleDeleteEdge,
             },
-        }));
+        })) as FlowCustomEdge[];
     }, [filteredEdges, handleDeleteEdge, isReadOnly]);
 
     return (
@@ -1134,14 +1138,15 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                 nodesConnectable={!isReadOnly}
                 elementsSelectable={true}
                 onEdgeClick={isReadOnly ? undefined : (_, edge) => {
+                    const edgeData = edge.data as MldEdgeData | undefined;
                     setEditingEdgeId(edge.id);
                     setEdgeSourceNodeId(edge.source);
                     setEdgeTargetNodeId(edge.target);
-                    setEdgeSourceFieldId(edge.data?.sourceField || "");
-                    setEdgeTargetFieldId(edge.data?.targetField || "");
+                    setEdgeSourceFieldId(edgeData?.sourceField || "");
+                    setEdgeTargetFieldId(edgeData?.targetField || "");
                     setEdgeSourceHandle(edge.sourceHandle || undefined);
                     setEdgeTargetHandle(edge.targetHandle || undefined);
-                    setEdgeCardinality(edge.data?.cardinality || (mode === "MCD" ? "1,N" : "1:N"));
+                    setEdgeCardinality(edgeData?.cardinality || (mode === "MCD" ? "1,N" : "1:N"));
                     setIsEdgeModalOpen(true);
                 }}
                 onNodeContextMenu={handleNodeContextMenu}
@@ -1179,32 +1184,36 @@ export function FlowDiagram({ isReadOnly = false, onOpenCommentsSidebar }: FlowD
                         onContextMenu={(e) => { e.preventDefault(); closeContextMenu(); }}
                     />
                     <div
-                        className="fixed z-50 min-w-[180px] rounded-xl border border-border bg-card/95 backdrop-blur-md shadow-2xl p-1.5 text-sm"
+                        className="fixed z-50 min-w-[200px] rounded-xl border border-border bg-card/95 backdrop-blur-md shadow-2xl p-1.5 text-sm space-y-1"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
-                        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border mb-1 truncate max-w-[200px]">
+                        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/60 mb-1 truncate max-w-[200px]">
                             {contextMenu.nodeName}
                         </div>
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                                 setSelectedNodeForComments({ id: contextMenu.nodeId, name: contextMenu.nodeName });
                                 closeContextMenu();
                             }}
-                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-secondary/80 transition-colors text-left text-xs font-medium text-foreground"
+                            className="w-full justify-start gap-2.5 text-xs font-medium h-8"
                         >
-                            <Eye className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                            Voir les commentaires
-                        </button>
-                        <button
+                            <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>Voir les commentaires</span>
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                                 setSelectedNodeForComments({ id: contextMenu.nodeId, name: contextMenu.nodeName });
                                 closeContextMenu();
                             }}
-                            className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors text-left text-xs font-medium"
+                            className="w-full justify-start gap-2.5 text-xs font-medium h-8 text-indigo-400 hover:text-indigo-400 hover:bg-indigo-500/10"
                         >
-                            <MessageSquarePlus className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
-                            Ajouter un commentaire
-                        </button>
+                            <MessageSquarePlus className="h-3.5 w-3.5 text-indigo-400" />
+                            <span>Ajouter un commentaire</span>
+                        </Button>
                     </div>
                 </>
             )}

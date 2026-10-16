@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Key, Trash2 } from "lucide-react";
-import { ModelingMode, McdCardinality, MldCardinality, MldColumn, FlowCustomNode } from "../types";
+import { ModelingMode, McdCardinality, MldCardinality, MldColumn, MldTableData, FlowCustomNode } from "../types";
 
 type EdgeModalProps = {
     isOpen: boolean;
@@ -50,7 +50,7 @@ export function EdgeModal({
         }
     }, [isOpen, initialCardinality, initialTargetFieldId, defaultCardinality]);
 
-    const targetColumns: MldColumn[] = targetNode?.data?.columns || [];
+    const targetColumns: MldColumn[] = (targetNode?.data as MldTableData)?.columns || [];
 
     const handleSave = () => {
         onSave(initialSourceFieldId, targetFieldId, cardinality);
@@ -125,6 +125,8 @@ export function EdgeModal({
                                     <SelectItem value="1,1">1,1 (Exactement un)</SelectItem>
                                     <SelectItem value="0,N">0,N (Au moins zéro, jusqu'à plusieurs)</SelectItem>
                                     <SelectItem value="1,N">1,N (Au moins un, jusqu'à plusieurs)</SelectItem>
+                                    <SelectItem value="N,N">N,N (Au moins un, jusqu'à plusieurs)</SelectItem>
+                                    <SelectItem value="N,1">N,1 (Au moins un, jusqu'à plusieurs)</SelectItem>
                                 </SelectContent>
                             </Select>
                         ) : mode === "MLD" ? (

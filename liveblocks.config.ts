@@ -34,9 +34,8 @@ declare global {
 
     // Custom metadata set on threads, for useThreads, useCreateThread, etc.
     ThreadMetadata: {
-      // Example, attaching coordinates to a thread
-      // x: number;
-      // y: number;
+      nodeId?: string;
+      nodeName?: string;
     };
 
     // Custom room info set with resolveRoomsInfo, for useRoomInfo

@@ -51,7 +51,7 @@ export function AddProjectDialog({ userId, email, trigger }: AddProjectDialogPro
             {/* Bouton déclencheur */}
             <span onClick={() => setIsOpen(true)} className="contents">
                 {trigger || (
-                    <Button className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/20 font-semibold">
+                    <Button className="gap-2 font-semibold">
                         <Plus className="h-4 w-4" />
                         Nouveau Projet
                     </Button>
@@ -100,7 +100,7 @@ export function AddProjectDialog({ userId, email, trigger }: AddProjectDialogPro
                                 type="submit"
                                 size="sm"
                                 disabled={isLoading}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-semibold"
+                                className="gap-2 font-semibold"
                             >
                                 {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                                 {isLoading ? "Création..." : "Créer le projet"}
